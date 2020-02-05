@@ -23,10 +23,13 @@ import cuda_error_pb2
 --version=80,90,91,92,100,102 --url=https://docs.nvidia.com/cuda/archive/8.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/9.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/9.1/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/9.2/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/10.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038
 --version=102 --url=https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038
 --version=90,100,102 --url=https://docs.nvidia.com/cuda/archive/9.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/10.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038
-
+--version=90 --url=https://docs.nvidia.com/cuda/archive/9.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038
 '''
 
-def parsing(data, version, url):
+def parsing(data, cuda_errorDesc , version, url):
+    All_Messages = cuda_errorDesc.AllMessages.add()
+    All_Messages.version = int(version)
+
     ssl._create_default_https_context = ssl._create_unverified_context
     html = urllib2.urlopen(url).read()
     '''
@@ -89,11 +92,22 @@ def parsing(data, version, url):
                 m_message = m_message.replace(list_p[idx], list_p_detail[idx])
 
             m_message = m_message.replace('  ', '')
-            dic_message[m_type] = m_message
+            dic_message[m_type] = m_message 
             f.write('%s%s' % (m_type, ':'))
-            f.write('%s%s' % (m_message, '\n'))
+            f.write('%s%s' % (m_message, '\n'))  # save for data.txt
             #f.write(m_type)
             #f.write(m_message)
+
+            _Messages = All_Messages.Messages.add()
+            print(type(m_type))
+            try:
+                _Messages.errorCode = int(m_type)
+            except ValueError:
+                if re.match('0x', m_type):
+                    _Messages.errorCode = int(m_type, 16)
+                else:
+                    raise ValueError
+            _Messages.errorMessage = m_message # save for data1.pb from python-protobuf
 
     f.close()  # data.txt
     dic['version'] = version
@@ -121,14 +135,33 @@ def main(argv):
     url = url.split(',')
     assert len(version) == len(url)
     data = []
+    cuda_errorDesc = cuda_error_pb2.cudaerrorDesc()
     for idx in range(len(version)):
         print("crawling errorMessage for CUDA%s from %s" %
               (version[idx], url[idx]))
-        parsing(data, version[idx], url[idx])
+        parsing(data, cuda_errorDesc, version[idx], url[idx])
     with open('data.json', 'w') as f:
-        json.dump(data, f, indent=4)  # data.json
+        json.dump(data, f, indent=4)  # save for data.json
+    
+    serializeToString = cuda_errorDesc.SerializeToString()
+    with open("data1.pb", "wb") as f:
+        f.write(serializeToString)    # save for data1.pb from python-protobuf
     print("crawling errorMessage for CUDA has been done!!!")
 
 
 if __name__ == "__main__":
+    '''cuda_errorDesc = cuda_error_pb2.cudaerrorDesc()
+    All_Messages = cuda_errorDesc.AllMessages.add()
+    All_Messages.version = 90
+
+    _Messages = All_Messages.Messages.add()
+    _Messages.errorCode = 10
+    _Messages.errorMessage = "hello,world"
+
+    serializeToString = cuda_errorDesc.SerializeToString()
+    print(serializeToString,type(serializeToString))
+
+    with open("cuda_error1.pb", "wb") as f:
+        f.write(serializeToString)
+    '''
     main(sys.argv[1:])

@@ -19,7 +19,7 @@
 #include <vector>
 #include "cuda_error.pb.h"
 #include "json/json.h"
-#define CUDA_VERSION 10200
+#define CUDA_VERSION 9000
 
 namespace paddle {
 namespace platform {
@@ -55,7 +55,7 @@ bool save() {
     }
     cudaerror.mutable_allmessages()->Add()->CopyFrom(allMessage);
   }
-#if 1
+#if 0
   std::ofstream fout("data.pb", std::ios::out | std::ios::binary);
   int32_t size = cudaerror.ByteSize();
   std::cout << "size:" << size << std::endl;
@@ -64,16 +64,18 @@ bool save() {
   // std::cout << "data:" << out << std::endl;
   fout.write(out.data(), size);
   fout.close();
-#elif 0
+#elif 1
   std::fstream fout("data.pb",
                     std::ios::out | std::ios::binary | std::ios::trunc);
-  allMessage.SerializeToOstream(&fout);
+  std::cout << "size:" << cudaerror.ByteSize() << std::endl;
+  cudaerror.SerializeToOstream(&fout);
   fout.close();
 #elif 0
   std::fstream fout("data.pb",
                     std::ios::out | std::ios::binary | std::ios::trunc);
+  std::cout << "size:" << cudaerror.ByteSize() << std::endl;
   std::string retv;
-  allMessage.SerializePartialToString(&retv);
+  cudaerror.SerializePartialToString(&retv);
   std::cout << "data:" << retv << std::endl;
   fout.write(retv.data(), retv.size());
   fout.close();
@@ -92,6 +94,7 @@ void load(int32_t errorcode) {
 #else
 #endif
   proto::cudaerrorDesc cudaerror;
+#if 0
   std::ifstream fin("data.pb", std::ios::in | std::ios::binary);
   int32_t size;
   fin.read(reinterpret_cast<char *>(&size), sizeof(size));
@@ -101,6 +104,13 @@ void load(int32_t errorcode) {
     std::cerr << "Failed to parse data.pb." << std::endl;
     exit(1);
   }
+#else
+  std::ifstream fin("data1.pb", std::ios::in | std::ios::binary);
+  if (!cudaerror.ParseFromIstream(&fin)) {
+    std::cerr << "Failed to parse data.pb" << std::endl;
+    exit(1);
+  }
+#endif
   for (size_t i = 0; i < cudaerror.allmessages_size(); ++i) {
     if (cuda_version == cudaerror.allmessages(i).version()) {
       for (size_t j = 0; j < cudaerror.allmessages(i).messages_size(); ++j) {
@@ -121,5 +131,5 @@ void load(int32_t errorcode) {
 
 int main(int argc, char *argv[]) {
   paddle::platform::save();
-  paddle::platform::load(208);
+  paddle::platform::load(10000);
 }

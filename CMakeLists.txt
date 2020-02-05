@@ -26,8 +26,9 @@ add_custom_command(
 add_library(cuda_error_proto_cc ${proto_src})
 target_link_libraries(cuda_error_proto_cc protobuf)
 add_dependencies(cuda_error_proto_cc protobuf)
-add_custom_target(cuda_error_proto_py ALL DEPENDS ${proto_py} protobuf)
-
+add_custom_target(cuda_error_proto_py ALL
+      COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/cuda_error_pb2.py ${CMAKE_SOURCE_DIR}
+      DEPENDS ${proto_py} protobuf)
 add_executable(demo main.cc)
 target_link_libraries(demo cuda_error_proto_cc)
 add_dependencies(demo cuda_error_proto_py)

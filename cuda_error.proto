@@ -25,4 +25,6 @@ message AllMessageDesc {
   repeated MessageDesc Messages = 2;
 }
 
-message cudaerrorDesc { repeated AllMessageDesc AllMessages = 2; }
+message cudaerrorDesc { 
+  repeated AllMessageDesc AllMessages = 2; 
+}
