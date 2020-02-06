@@ -20,9 +20,10 @@ import collections
 import sys, getopt
 import cuda_error_pb2
 '''
---version=80,90,91,92,100,102 --url=https://docs.nvidia.com/cuda/archive/8.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/9.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/9.1/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/9.2/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/10.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038
---version=102 --url=https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038
---version=90,100,102 --url=https://docs.nvidia.com/cuda/archive/9.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/10.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038
+0 represent the latest cuda version
+--version=80,90,91,92,100,0 --url=https://docs.nvidia.com/cuda/archive/8.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/9.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/9.1/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/9.2/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/10.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038
+--version=0 --url=https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038
+--version=90,100,0 --url=https://docs.nvidia.com/cuda/archive/9.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/archive/10.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038,https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038
 --version=90 --url=https://docs.nvidia.com/cuda/archive/9.0/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038
 '''
 
@@ -99,7 +100,6 @@ def parsing(data, cuda_errorDesc , version, url):
             #f.write(m_message)
 
             _Messages = All_Messages.Messages.add()
-            print(type(m_type))
             try:
                 _Messages.errorCode = int(m_type)
             except ValueError:
@@ -107,13 +107,12 @@ def parsing(data, cuda_errorDesc , version, url):
                     _Messages.errorCode = int(m_type, 16)
                 else:
                     raise ValueError
-            _Messages.errorMessage = m_message # save for data1.pb from python-protobuf
+            _Messages.errorMessage = m_message # save for data_python.pb from python-protobuf
 
     f.close()  # data.txt
     dic['version'] = version
     dic['message'] = dic_message
     data.append(dic)
-
 
 def main(argv):
     version = []
@@ -144,8 +143,8 @@ def main(argv):
         json.dump(data, f, indent=4)  # save for data.json
     
     serializeToString = cuda_errorDesc.SerializeToString()
-    with open("data1.pb", "wb") as f:
-        f.write(serializeToString)    # save for data1.pb from python-protobuf
+    with open("data_python.pb", "wb") as f:
+        f.write(serializeToString)    # save for data_python.pb from python-protobuf
     print("crawling errorMessage for CUDA has been done!!!")
 
 

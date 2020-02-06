@@ -24,6 +24,11 @@
 namespace paddle {
 namespace platform {
 
+enum error {
+  normal = 0,
+  bug = 1
+};
+
 bool save() {
   Json::Reader reader;
   Json::Value root;
@@ -55,7 +60,7 @@ bool save() {
     }
     cudaerror.mutable_allmessages()->Add()->CopyFrom(allMessage);
   }
-#if 0
+#if 1
   std::ofstream fout("data.pb", std::ios::out | std::ios::binary);
   int32_t size = cudaerror.ByteSize();
   std::cout << "size:" << size << std::endl;
@@ -83,15 +88,12 @@ bool save() {
 }
 
 void load(int32_t errorcode) {
-#if CUDA_VERSION > 10000
-  int32_t cuda_version = 102;
-#elif CUDA_VERSION == 10000
+#if CUDA_VERSION == 10000
   int32_t cuda_version = 100;
 #elif CUDA_VERSION >= 9000
   int32_t cuda_version = 90;
-#elif CUDA_VERSION >= 8000
-  int32_t cuda_version = 80;
 #else
+  int32_t cuda_version = 80;
 #endif
   proto::cudaerrorDesc cudaerror;
 #if 0
@@ -105,15 +107,15 @@ void load(int32_t errorcode) {
     exit(1);
   }
 #else
-  std::ifstream fin("data1.pb", std::ios::in | std::ios::binary);
+  std::ifstream fin("../data_python.pb", std::ios::in | std::ios::binary);
   if (!cudaerror.ParseFromIstream(&fin)) {
-    std::cerr << "Failed to parse data.pb" << std::endl;
+    std::cerr << "Failed to parse data_python.pb" << std::endl;
     exit(1);
   }
 #endif
-  for (size_t i = 0; i < cudaerror.allmessages_size(); ++i) {
+  for (int i = 0; i < cudaerror.allmessages_size(); ++i) {
     if (cuda_version == cudaerror.allmessages(i).version()) {
-      for (size_t j = 0; j < cudaerror.allmessages(i).messages_size(); ++j) {
+      for (int j = 0; j < cudaerror.allmessages(i).messages_size(); ++j) {
         if (errorcode == cudaerror.allmessages(i).messages(j).errorcode()) {
           std::cout << "errorcode:"
                     << cudaerror.allmessages(i).messages(j).errorcode()

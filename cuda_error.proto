@@ -16,15 +16,20 @@ syntax = "proto2";
 package paddle.platform.proto;
 
 message MessageDesc {
+  // Indicates the type of error
   required int32 errorCode = 1;
+  // Indicates the message of error
   required string errorMessage = 2;
 }
 
 message AllMessageDesc {
+  // Version of cuda API
   required int32 version = 1;
+  // Error messages of different errortype
   repeated MessageDesc Messages = 2;
 }
 
-message cudaerrorDesc { 
+message cudaerrorDesc {
+  // Error messages of different cuda versions(9.0/10.0/10.2)
   repeated AllMessageDesc AllMessages = 2; 
 }
